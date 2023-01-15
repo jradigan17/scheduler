@@ -46,9 +46,21 @@ export default function useApplicationData() {
           days: action.days,
           appointments: action.appointments,
           interviewers: action.interviewers}
-      case SET_INTERVIEW: 
-        return {...state,
-          appointments: action.appointments}
+      case SET_INTERVIEW:{ 
+          const appointment = {
+            ...state.appointments[action.id],
+            interview: action.interview
+          };
+          const appointments = {
+            ...state.appointments,
+            [action.id]: appointment,
+          };
+          let date = state.days.filter(each => each.name === state.day)
+          const spots = date[0].spots - 1
+          console.log(spots)
+          return (spots,
+        {...state,
+          appointments: appointments})}
       default:
         throw new Error(
           `Tried to reduce with unsupported action type: ${action.type}`
@@ -91,31 +103,61 @@ export default function useApplicationData() {
     });
   }
 
-  useEffect(() => {initialLoad()}, []);
+  useEffect(() => {
+    // ----------------------------------------------
+    // Call API for initial load
+    initialLoad()
+    // ----------------------------------------------
+
+    // Websocket connection
+    const url = process.env.REACT_APP_WEBSOCKET_URL;
+    const webSocket = new WebSocket(url);
+    // console.log(url)    
+    webSocket.onopen = (event) => {
+      webSocket.send('ping');
+    };
+
+    // webSocket.onmessage = (event) => {
+    //   console.log(JSON.parse(event.data));
+    // }
+
+    webSocket.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      console.log(msg);
+      if(msg.type === 'SET_INTERVIEW') {
+        dispatch({
+          type: SET_INTERVIEW,
+          id: msg.id,
+          interview: msg.interview
+        })
+      }
+    }   
+    }, []);
   // ----------------------------------------------
+
 
   // ----------------------------------------------
   // Book Interview
   function bookInterview(id, interview) {
   
-  // Using Local Storage
-    // console.log(id, interview);
-    const appointment = {
-      ...state.appointments[id],
-      interview: { ...interview }
-    };
+  // // Using Local Storage
+  //   // console.log(id, interview);
+  //   const appointment = {
+  //     ...state.appointments[id],
+  //     interview: { ...interview }
+  //   };
 
-    const appointments = {
-      ...state.appointments,
-      [id]: appointment,
-    };
+  //   const appointments = {
+  //     ...state.appointments,
+  //     [id]: appointment,
+  //   };
 
-    // setState({
-    //   ...state,
-    //   appointments
-    // });
-    let date = state.days.filter(each => each.name === state.day)
-    date[0].spots -= 1
+  //   // setState({
+  //   //   ...state,
+  //   //   appointments
+  //   // });
+  //   let date = state.days.filter(each => each.name === state.day)
+  //   date[0].spots -= 1
     // console.log(date[0].spots)
 
     return axios.put(`http://localhost:8001/api/appointments/${id}`,{interview})
@@ -123,7 +165,8 @@ export default function useApplicationData() {
       console.log(res);
       dispatch({
         type: SET_INTERVIEW,
-        appointments
+        id,
+        interview
       })
     })
   }
@@ -133,34 +176,35 @@ export default function useApplicationData() {
   // Cancel Interview
   function cancelInterview(id, interview = null) {
 
-    // Using Local Storage
-    // console.log(id, interview);
-    const appointment = {
-      ...state.appointments[id],
-      interview: null
-    };
+    // // Using Local Storage
+    // // console.log(id, interview);
+    // const appointment = {
+    //   ...state.appointments[id],
+    //   interview: null
+    // };
 
-    const appointments = {
-      ...state.appointments,
-      [id]: appointment,
-    };
+    // const appointments = {
+    //   ...state.appointments,
+    //   [id]: appointment,
+    // };
 
-    // setState({
-    //   ...state,
-    //   appointments
-    // });
+    // // setState({
+    // //   ...state,
+    // //   appointments
+    // // });
 
-    let date = state.days.filter(each => each.name === state.day)
-    date[0].spots += 1
-    // console.log(date[0].spots)
+    // let date = state.days.filter(each => each.name === state.day)
+    // date[0].spots += 1
+    // // console.log(date[0].spots)
 
     return axios.delete(`http://localhost:8001/api/appointments/${id}`,{interview})
     .then((res) => {
       console.log(res);
       dispatch({
         type: SET_INTERVIEW,
-        appointments
-      })
+        id,
+        interview
+      });
   // ----------------------------------------------
 
     // Attempt at updating spots - but it's already doing it    

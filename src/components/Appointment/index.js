@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import 'components/Appointment/styles.scss'
 import Header from './Header';
 import Empty from './Empty';
@@ -56,11 +56,24 @@ export default function Appointment(props) {
     })
   }
 
+  // ----------------------------------------------
+  // Websocket - listen & update when changes to interview
+  useEffect(() => {
+    if (props.interview && mode === EMPTY) {
+    transition(SHOW);
+    }
+    if (props.interview === null && mode === SHOW) {
+    transition(EMPTY);
+    }
+  }, [props.interview, transition, mode]);
+  // ----------------------------------------------
+
+
   return (
     <article className="appointment">
       {props.time && <Header time={props.time} />}
       {mode === EMPTY && <Empty onAdd={() => transition(CREATE)} />}
-      {mode === SHOW && ( 
+      {mode === SHOW && props.interview &&( 
         <Show id={props.id} student={props.interview.student} interviewer={props.interview.interviewer} onDelete={() => transition(CONFIRM)} onEdit={()=> transition(EDIT)}/>
       )} 
       {mode === CREATE && <Form onSave={save} interviewers={props.interviewers} onCancel={() => back()} />}
