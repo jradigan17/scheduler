@@ -4,6 +4,8 @@ import "components/Button.scss";
 
 export default function Button(props) {
 
+// ----------------------------------------------
+// Alternative way to assign class
    // let buttonClass = 'button';
    // let disabledButton = '';
 
@@ -12,6 +14,7 @@ export default function Button(props) {
    // } else if (props.confirm) {
    //    buttonClass += ' button--confirm'
    // }
+// ----------------------------------------------
 
    const buttonClass = classNames("button", {
       "button--confirm": props.confirm,
@@ -19,7 +22,7 @@ export default function Button(props) {
    });
    
    return (
-   <button className={`${buttonClass}`} disabled={props.disabled} onClick={props.onClick}>
+   <button className={buttonClass} disabled={props.disabled} onClick={props.onClick}>
       {props.children}
    </button>
    );
