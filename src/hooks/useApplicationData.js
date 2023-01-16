@@ -1,5 +1,6 @@
 import { useReducer, useEffect } from "react";
 import axios from "axios";
+import { getAppointmentsForDay } from "helpers/selectors";
 
 export default function useApplicationData() {
 
@@ -30,6 +31,7 @@ export default function useApplicationData() {
   // });
   // ----------------------------------------------
 
+
   // ----------------------------------------------
   // Use Reducer - Actions & Reducer Function
   const SET_DAY = "SET_DAY";
@@ -47,20 +49,20 @@ export default function useApplicationData() {
           appointments: action.appointments,
           interviewers: action.interviewers}
       case SET_INTERVIEW:{ 
-          const appointment = {
-            ...state.appointments[action.id],
-            interview: action.interview
-          };
-          const appointments = {
-            ...state.appointments,
-            [action.id]: appointment,
-          };
-          let date = state.days.filter(each => each.name === state.day)
-          const spots = date[0].spots - 1
-          console.log(spots)
-          return (spots,
-        {...state,
-          appointments: appointments})}
+        const appointment = {
+          ...state.appointments[action.id],
+          interview: action.interview
+        };
+        const appointments = {
+          ...state.appointments,
+          [action.id]: appointment,
+        };
+        let change = !action.interview ? 'add' : ''
+        spotsRemaining(state, change)
+
+        return {...state,
+          appointments: appointments}
+        };
       default:
         throw new Error(
           `Tried to reduce with unsupported action type: ${action.type}`
@@ -102,12 +104,13 @@ export default function useApplicationData() {
     
     });
   }
+  // ----------------------------------------------
 
+  // ----------------------------------------------
+  // Use effect for initial load and for Websocket 
   useEffect(() => {
-    // ----------------------------------------------
     // Call API for initial load
     initialLoad()
-    // ----------------------------------------------
 
     // Websocket connection
     const url = process.env.REACT_APP_WEBSOCKET_URL;
@@ -123,7 +126,7 @@ export default function useApplicationData() {
 
     webSocket.onmessage = (event) => {
       const msg = JSON.parse(event.data);
-      console.log(msg);
+      // console.log(msg);
       if(msg.type === 'SET_INTERVIEW') {
         dispatch({
           type: SET_INTERVIEW,
@@ -135,6 +138,21 @@ export default function useApplicationData() {
     }, []);
   // ----------------------------------------------
 
+  // ----------------------------------------------
+  // Spots Remaining
+  function spotsRemaining(state, change) {
+    let date = state.days.filter(each => each.name === state.day)[0]
+    let count = 0;
+    const existingAppointments = getAppointmentsForDay(state, state.day)
+    for (let existingAppointment of existingAppointments) {
+      if(!existingAppointment.interview) count ++ 
+    }
+    change === 'add' ? count ++ : count --;
+
+    date.spots = count
+    return
+  }
+  // ----------------------------------------------
 
   // ----------------------------------------------
   // Book Interview
@@ -156,18 +174,18 @@ export default function useApplicationData() {
   //   //   ...state,
   //   //   appointments
   //   // });
-  //   let date = state.days.filter(each => each.name === state.day)
-  //   date[0].spots -= 1
+    // let date = state.days.filter(each => each.name === state.day)
+    // date[0].spots -= 1
     // console.log(date[0].spots)
 
     return axios.put(`http://localhost:8001/api/appointments/${id}`,{interview})
     .then((res) => {
       console.log(res);
-      dispatch({
-        type: SET_INTERVIEW,
-        id,
-        interview
-      })
+      // dispatch({
+      //   type: SET_INTERVIEW,
+      //   id,
+      //   interview
+      // })
     })
   }
   // ----------------------------------------------
@@ -200,13 +218,13 @@ export default function useApplicationData() {
     return axios.delete(`http://localhost:8001/api/appointments/${id}`,{interview})
     .then((res) => {
       console.log(res);
-      dispatch({
-        type: SET_INTERVIEW,
-        id,
-        interview
-      });
-  // ----------------------------------------------
+      // dispatch({
+      //   type: SET_INTERVIEW,
+      //   id,
+      //   interview
+      // });
 
+    // ----------------------------------------------
     // Attempt at updating spots - but it's already doing it    
       // const test = state.days.filter(each => each.name === state.day)
       // console.log(state.days[0].name);
@@ -225,7 +243,6 @@ export default function useApplicationData() {
     // setState,
     setDay,
     bookInterview,
-    cancelInterview,
-    reducer
+    cancelInterview
   }
 }
