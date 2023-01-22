@@ -40,7 +40,7 @@ export default function Appointment(props) {
       transition(SHOW)
     })
     .catch((e) => {
-      console.log(`The Error Message is: ${e.message}`);
+      // console.log(`The Error Message is: ${e.message}`);
       transition(ERROR_SAVE, true)
     })
   }
@@ -51,7 +51,7 @@ export default function Appointment(props) {
     return props.cancelInterview(id)
     .then((res) => {transition(EMPTY)})
     .catch((e) => {
-      console.log(`The Error Message is: ${e.message}`);
+      // console.log(`The Error Message is: ${e.message}`);
       transition(ERROR_DELETE, true)
     })
   }
@@ -70,7 +70,7 @@ export default function Appointment(props) {
 
 
   return (
-    <article className="appointment">
+    <article className="appointment" data-testid="appointment">
       {props.time && <Header time={props.time} />}
       {mode === EMPTY && <Empty onAdd={() => transition(CREATE)} />}
       {mode === SHOW && props.interview &&( 

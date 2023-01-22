@@ -1,6 +1,11 @@
 import { useReducer, useEffect } from "react";
 import axios from "axios";
-import { getAppointmentsForDay } from "helpers/selectors";
+
+import reducer, {
+  SET_DAY,
+  SET_APPLICATION_DATA,
+  SET_INTERVIEW
+} from "reducers/application";
 
 export default function useApplicationData() {
 
@@ -32,44 +37,7 @@ export default function useApplicationData() {
   // ----------------------------------------------
 
 
-  // ----------------------------------------------
-  // Use Reducer - Actions & Reducer Function
-  const SET_DAY = "SET_DAY";
-  const SET_APPLICATION_DATA = "SET_APPLICATION_DATA";
-  const SET_INTERVIEW = "SET_INTERVIEW";
 
-  function reducer(state, action) {
-    switch (action.type) {
-      case SET_DAY:
-        // console.log(`The date is: ${action.day}`)
-        return { ...state, day: action.day}
-      case SET_APPLICATION_DATA:
-        return {...state,
-          days: action.days,
-          appointments: action.appointments,
-          interviewers: action.interviewers}
-      case SET_INTERVIEW:{ 
-        const appointment = {
-          ...state.appointments[action.id],
-          interview: action.interview
-        };
-        const appointments = {
-          ...state.appointments,
-          [action.id]: appointment,
-        };
-        let change = !action.interview ? 'add' : ''
-        spotsRemaining(state, change)
-
-        return {...state,
-          appointments: appointments}
-        };
-      default:
-        throw new Error(
-          `Tried to reduce with unsupported action type: ${action.type}`
-        );
-    }
-  }
-  // ----------------------------------------------
 
   // ----------------------------------------------
   // Reducer State & Dispatch
@@ -138,21 +106,7 @@ export default function useApplicationData() {
     }, []);
   // ----------------------------------------------
 
-  // ----------------------------------------------
-  // Spots Remaining
-  function spotsRemaining(state, change) {
-    let date = state.days.filter(each => each.name === state.day)[0]
-    let count = 0;
-    const existingAppointments = getAppointmentsForDay(state, state.day)
-    for (let existingAppointment of existingAppointments) {
-      if(!existingAppointment.interview) count ++ 
-    }
-    change === 'add' ? count ++ : count --;
 
-    date.spots = count
-    return
-  }
-  // ----------------------------------------------
 
   // ----------------------------------------------
   // Book Interview
@@ -181,11 +135,11 @@ export default function useApplicationData() {
     return axios.put(`http://localhost:8001/api/appointments/${id}`,{interview})
     .then((res) => {
       console.log(res);
-      // dispatch({
-      //   type: SET_INTERVIEW,
-      //   id,
-      //   interview
-      // })
+      dispatch({
+        type: SET_INTERVIEW,
+        id,
+        interview
+      })
     })
   }
   // ----------------------------------------------
@@ -218,11 +172,11 @@ export default function useApplicationData() {
     return axios.delete(`http://localhost:8001/api/appointments/${id}`,{interview})
     .then((res) => {
       console.log(res);
-      // dispatch({
-      //   type: SET_INTERVIEW,
-      //   id,
-      //   interview
-      // });
+      dispatch({
+        type: SET_INTERVIEW,
+        id,
+        interview
+      });
 
     // ----------------------------------------------
     // Attempt at updating spots - but it's already doing it    
