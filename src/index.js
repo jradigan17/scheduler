@@ -3,6 +3,9 @@
 // Webpack Dev Server - npm start - Localhost: 9009
 // Jest: test runner - npm test (a to run all tests)
 // Cypress: End-to-End Testing
+// Scheduler-API: npm start
+// Scheduler-API: npm run test:server
+// Schedule-API: reset:  app.get("/api/debug/reset"
 // -------------------------------------
 
 // -------------------------------------
