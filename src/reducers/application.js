@@ -8,7 +8,9 @@ import { getAppointmentsForDay } from "helpers/selectors";
 
   export default function reducer(state, action) {
     switch (action.type) {
-
+      case SET_DAY:
+        // console.log(`The date is: ${action.day}`)
+        return { ...state, day: action.day}
       case SET_APPLICATION_DATA:
         return {...state,
           days: action.days,
